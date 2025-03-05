@@ -7,6 +7,16 @@
   Location,
   Setting,
 } from '@element-plus/icons-vue'
+
+// 新增登录相关代码
+import Login from './Login.vue'
+const showLogin = ref(true)
+
+// 登录成功回调
+const handleLoginSuccess = () => {
+  showLogin.value = false
+}
+
 const state = reactive({
   circleUrl:
     'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png',
@@ -31,7 +41,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <header>
+  <div>
+    <header>
 
     <div class="wrapper">
       <div class="list" :style="{width: isCollapse ? '63.33px' : '20%'}">
@@ -109,6 +120,17 @@ onBeforeUnmount(() => {
       </div>
     </div>
   </header>
+  </div>
+  <!-- 新增登录弹窗 -->
+  <el-dialog 
+    v-model="showLogin"
+    :modal="true"
+    :close-on-click-modal="false"
+    :show-close="true"
+    width="400px"
+  >
+  <Login @login-success="handleLoginSuccess" />
+  </el-dialog>
 </template>
 
 <style scoped>
@@ -257,4 +279,5 @@ onBeforeUnmount(() => {
     font-size: 12px;
   }
 }
+
 </style>
