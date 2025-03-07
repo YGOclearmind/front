@@ -120,17 +120,18 @@ onBeforeUnmount(() => {
       </div>
     </div>
   </header>
-  </div>
+ 
   <!-- 新增登录弹窗 -->
   <el-dialog 
     v-model="showLogin"
     :modal="true"
     :close-on-click-modal="false"
-    :show-close="true"
+    :show-close="false"
     width="400px"
   >
   <Login @login-success="handleLoginSuccess" />
   </el-dialog>
+  </div>
 </template>
 
 <style scoped>
