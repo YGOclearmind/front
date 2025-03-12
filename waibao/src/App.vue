@@ -126,7 +126,7 @@ onBeforeUnmount(() => {
     v-model="showLogin"
     :modal="true"
     :close-on-click-modal="false"
-    :show-close="false"
+    :show-close="true"
     width="400px"
   >
   <Login @login-success="handleLoginSuccess" />
