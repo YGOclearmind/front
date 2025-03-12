@@ -46,7 +46,7 @@ onBeforeUnmount(() => {
 
     <div class="wrapper">
       <div class="list" :style="{width: isCollapse ? '63.33px' : '20%'}">
-        <div class="title">导航</div>
+        <div class="title" @click="isCollapse = !isCollapse">导航</div>
         <div class="hamburger" @click="isCollapse = !isCollapse">
     <el-icon><Expand /></el-icon>
   </div>
