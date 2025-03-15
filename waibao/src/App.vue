@@ -7,9 +7,11 @@
   Location,
   Setting,
 } from '@element-plus/icons-vue'
-
+import{RouterLink,RouterView} from 'vue-router'
 // 新增登录相关代码
 import Login from './Login.vue'
+import router from './router'
+
 const showLogin = ref(true)
 
 // 登录成功回调
@@ -33,7 +35,9 @@ const checkMobile = () => {
 onMounted(() => {
   checkMobile();
   window.addEventListener('resize', checkMobile);
-});
+  if(showLogin.value){
+    router.push('/')
+}});
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', checkMobile);
@@ -66,8 +70,8 @@ onBeforeUnmount(() => {
             <span>Navigator One</span>
           </template>
           <el-menu-item-group title="Group One">
-            <el-menu-item index="1-1">item one</el-menu-item>
-            <el-menu-item index="1-2">item two</el-menu-item>
+            <el-menu-item index="1-1"><RouterLink to="/classrooms">教室</RouterLink></el-menu-item>//RouterLink是路由跳转的组件 模仿这个
+            <el-menu-item index="1-2">课程</el-menu-item>
           </el-menu-item-group>
           <el-menu-item-group title="Group Two">
             <el-menu-item index="1-3">item three</el-menu-item>
@@ -115,7 +119,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
         <div class="show">
-          <p>这里是之后的各个组件的展示区</p>
+          <RouterView />
         </div>
       </div>
     </div>
@@ -201,6 +205,16 @@ onBeforeUnmount(() => {
     align-items: center;
      display: flex;
   }
+  /* 基本的 RouterLink 样式 */
+.el-menu-item a {
+  color: inherit; /* 继承父元素的文本颜色 */
+  text-decoration: none; /* 去掉下划线 */
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+
 
   @media (max-width: 1200px) {
   .container {
