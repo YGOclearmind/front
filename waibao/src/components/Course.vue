@@ -2,56 +2,195 @@
   <div class="course-container">
     <h1>课程管理</h1>
     <div>
-      <div class="sub-title my-2 text-sm text-blue-600">
-        搜索课程
+      <div class="title-container">
+        <div class="sub-title my-2 text-sm text-blue-600">
+          搜索课程
+        </div>
       </div>
       <div class="search-container">
-        <el-autocomplete
-          v-model="state1"
-          :fetch-suggestions="querySearch"
-          clearable
-          class="inline-input"
-          placeholder="Please Input"
-          @select="handleSelect"
-        />
-        <el-button :icon="Search" circle @click="handleSearch" />
-        <el-button type="primary" @click="handleAddCourse">添加</el-button> <!-- 添加按钮 -->
+        <div class="search-item">
+          <span class="label">课程号</span>
+          <el-input
+            v-model="searchId"
+            clearable
+            class="inline-input"
+            placeholder="请输入课程号"
+          />
+        </div>
+        <div class="search-item">
+          <span class="label">课程名称</span>
+          <el-input
+            v-model="searchName"
+            clearable
+            class="inline-input"
+            placeholder="请输入课程名称"
+          />
+        </div>
+        <div class="search-item">
+          <span class="label">学分</span>
+          <el-input
+            v-model="searchCredit"
+            clearable
+            class="inline-input"
+            placeholder="请输入学分"
+          />
+        </div>
+        <div class="search-item">
+          <span class="label">学分</span>
+          <el-input
+            v-model="searchTeacherId"
+            clearable
+            class="inline-input"
+            placeholder="请输入教师号"
+          />
+        </div>
+        <div class="search-item">
+          <span class="label">课程时间</span>
+          <el-time-picker
+            v-model="timeRange"
+            is-range
+            range-separator="至"
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
+            class="inline-input"
+          />
+        </div>
+        <el-button :icon="Search" circle @click="handleSearch"></el-button>
+        <el-button :icon="Plus" circle @click="showAddCourseDialog"></el-button>
       </div>
     </div>
     <div>
       <el-row :gutter="20">
-        <!-- 使用 v-for 指令遍历 courses 列表，生成课程卡片 -->
-        <el-col :span="6" v-for="course in courses" :key="course.course_id">
+        <!-- 使用 v-for 指令遍历 paginatedCourses 列表，生成课程卡片 -->
+        <el-col :span="6" v-for="course in paginatedCourses" :key="course.id">
           <div class="grid-content ep-bg-purple">
-            <p><strong>课程ID:</strong> {{ course.course_id }}</p>
-            <p><strong>课程名称:</strong> {{ course.course_name }}</p>
+            <p><strong>课程ID:</strong> {{ course.id }}</p>
+            <p><strong>课程名称:</strong> {{ course.courseName }}</p>
             <p><strong>学分:</strong> {{ course.credit }}</p>
-            <p><strong>教师ID:</strong> {{ course.teacher_id }}</p>
+            <p><strong>教师ID:</strong> {{ course.teacherId }}</p>
+            <p><strong>日期:</strong> {{ course.date }}</p>
+            <p><strong>开始时间:</strong> {{ course.timeRange[0] }}</p>
+            <p><strong>结束时间:</strong> {{ course.timeRange[1] }}</p>
+            <el-button
+              :icon="Delete"
+              circle
+              class="delete-button"
+              @click="handleDeleteCourse(course.id)"
+            ></el-button>
           </div>
         </el-col>
       </el-row>
     </div>
+    <div class="pagination-container">
+      <el-button
+        v-if="currentPage > 1"
+        :icon="ArrowLeftBold"
+        circle
+        @click="prevPage"
+      ></el-button>
+      <span class="page-number">{{ currentPage }}</span>
+      <el-button
+        v-if="currentPage < totalPages"
+        :icon="ArrowRightBold"
+        circle
+        @click="nextPage"
+      ></el-button>
+    </div>
+    <!-- 添加课程对话框 -->
+    <el-dialog title="添加课程" v-model="addCourseDialogVisible">
+      <el-form :model="newCourse" ref="addCourseForm">
+        <el-form-item label="课程名称" prop="courseName">
+          <el-input v-model="newCourse.courseName" />
+        </el-form-item>
+        <el-form-item label="学分" prop="credit">
+          <el-input v-model="newCourse.credit" />
+        </el-form-item>
+        <el-form-item label="教师ID" prop="teacherId">
+          <el-input v-model="newCourse.teacherId" />
+        </el-form-item>
+        <el-form-item label="上课日期" prop="date">
+          <el-date-picker
+            v-model="newCourse.date"
+            type="date"
+            placeholder="选择日期"
+            class="inline-input"
+          />
+        </el-form-item>
+        <el-form-item label="课程时间" prop="timeRange">
+          <el-time-picker
+            v-model="newCourse.timeRange"
+            is-range
+            range-separator="至"
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
+            class="inline-input"
+          />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="addCourseDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleAddCourse">添加</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue'
-import { Search } from '@element-plus/icons-vue'
+import { onMounted, ref, computed } from 'vue'
+import { Search, Delete, ArrowLeftBold, ArrowRightBold, Plus } from '@element-plus/icons-vue'
 import axios from 'axios'
 
 // 定义 Course 接口
 interface Course {
-  course_id: number
-  course_name: string
+  id: string
+  courseName: string
   credit: number
-  teacher_id: number
+  teacherId: number
+  date: string
+  timeRange: string[]
 }
 
 // 定义搜索框的绑定值
-const state1 = ref('')
+const searchId = ref('')
+const searchName = ref('')
+const searchCredit = ref('')
+const searchTeacherId = ref('')
+const timeRange = ref<string[]>([])
 
 // 定义课程列表
 const courses = ref<Course[]>([])
+
+// 定义分页相关的状态
+const currentPage = ref(1)
+const pageSize = 12
+
+// 计算总页数
+const totalPages = computed(() => {
+  return Math.ceil(courses.value.length / pageSize)
+})
+
+// 计算当前页显示的课程
+const paginatedCourses = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  const end = start + pageSize
+  return courses.value.slice(start, end)
+})
+
+// 添加课程对话框的状态
+const addCourseDialogVisible = ref(false)
+const newCourse = ref<Course>({
+  id: '',
+  courseName: '',
+  credit: 0,
+  teacherId: 0,
+  date: '',
+  timeRange: []
+})
+
+// 显示添加课程对话框
+const showAddCourseDialog = () => {
+  addCourseDialogVisible.value = true
+}
 
 // 搜索建议函数
 const querySearch = (queryString: string, cb: any) => {
@@ -66,7 +205,7 @@ const querySearch = (queryString: string, cb: any) => {
 const createFilter = (queryString: string) => {
   return (course: Course) => {
     return (
-      course.course_name.toLowerCase().indexOf(queryString.toLowerCase()) === 0
+      course.courseName.toLowerCase().indexOf(queryString.toLowerCase()) === 0
     )
   }
 }
@@ -83,14 +222,24 @@ const loadCourses = async () => {
 
 // 搜索课程
 const handleSearch = async () => {
-  if (state1.value.trim() === '') {
+  const params: Record<string, any> = {}
+  if (searchId.value.trim() !== '') params.id = searchId.value
+  if (searchName.value.trim() !== '') params.courseName = searchName.value
+  if (searchCredit.value.trim() !== '') params.credit = searchCredit.value
+  if (searchTeacherId.value.trim() !== '') params.teacherId = searchTeacherId.value
+  if (timeRange.value.length > 0) {
+    params.beginTime = timeRange.value[0]
+    params.endTime = timeRange.value[1]
+  }
+
+  if (Object.keys(params).length === 0) {
     // 搜索框为空时，加载所有课程
     await loadCourses()
   } else {
     // 有输入时，搜索特定课程
     try {
-      const response = await axios.get(`http://localhost:8080/api/courses/getCourse/${state1.value}`)
-      courses.value = [response.data]
+      const response = await axios.get('http://localhost:8080/api/courses/getCourse', { params })
+      courses.value = response.data
     } catch (error) {
       console.error('Failed to search course:', error)
     }
@@ -104,22 +253,46 @@ const handleSelect = (item: Record<string, any>) => {
 
 // 处理添加课程事件
 const handleAddCourse = async () => {
-  const newCourse: Course = {
-    course_id: Date.now(), // 使用当前时间戳作为临时 ID
-    course_name: state1.value,
-    credit: 0, // 默认值，可以根据需要修改
-    teacher_id: 0 // 默认值，可以根据需要修改
-  }
   try {
-    const response = await axios.post('http://localhost:8080/api/courses/insertCourse', newCourse)
+    const response = await axios.post('http://localhost:8080/api/courses/insertCourse', newCourse.value)
     if (response.data === '添加成功') {
-      courses.value.push(newCourse)
+      courses.value.push(newCourse.value)
       console.log('添加课程成功')
+      addCourseDialogVisible.value = false
     } else {
       console.error('添加课程失败:', response.data)
     }
   } catch (error) {
     console.error('Failed to add course:', error)
+  }
+}
+
+// 处理删除课程事件
+const handleDeleteCourse = async (id: string) => {
+  try {
+    const response = await axios.post(`http://localhost:8080/api/courses/deleteCourse/${id}`)
+    if (response.data === '删除成功') {
+      courses.value = courses.value.filter(course => course.id !== id)
+      console.log('删除课程成功')
+    } else {
+      console.error('删除课程失败:', response.data)
+    }
+  } catch (error) {
+    console.error('Failed to delete course:', error)
+  }
+}
+
+// 切换到上一页
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+// 切换到下一页
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
   }
 }
 
@@ -134,6 +307,13 @@ onMounted(() => {
   width: 100%;
 }
 
+/*标题样式和切换搜索按钮*/
+.title-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 /*搜索框和按钮样式*/
 .search-container {
   display: flex;
@@ -142,9 +322,22 @@ onMounted(() => {
   margin-top: 10px;
 }
 
-.inline-input {
-  flex: 1;
+.search-item {
+  display: flex;
+  align-items: center;
   margin-right: 10px;
+}
+
+.label {
+  margin-right: 5px;
+}
+
+.inline-input {
+  width: 150px;
+}
+
+.small-input {
+  width: 100px; /* 调整性别选择框的宽度 */
 }
 
 .sub-title {
@@ -168,6 +361,31 @@ onMounted(() => {
   min-height: 36px;
   border: 1px solid #ccc; /* 添加边框 */
   padding: 10px;
-  background-color: #f9f9f9;
+  background-color: #e4dcdc;
+  position: relative;
+}
+
+.delete-button {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: #f1f3f5;
+}
+
+/*分页样式*/
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.page-number {
+  margin: 0 10px;
+  font-size: 16px;
 }
 </style>
