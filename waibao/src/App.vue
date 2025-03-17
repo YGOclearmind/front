@@ -70,7 +70,7 @@ onBeforeUnmount(() => {
             <span>Navigator One</span>
           </template>
           <el-menu-item-group title="Group One">
-            <el-menu-item index="1-1"><RouterLink to="/classrooms">教室</RouterLink></el-menu-item>//RouterLink是路由跳转的组件 模仿这个
+            <el-menu-item index="1-1"><RouterLink to="/classrooms">教室</RouterLink></el-menu-item>
             <el-menu-item index="1-2">课程</el-menu-item>
           </el-menu-item-group>
           <el-menu-item-group title="Group Two">
