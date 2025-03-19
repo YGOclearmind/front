@@ -2,14 +2,9 @@
   <div class="course-container">
     <h1>课程管理</h1>
     <div>
-      <div class="title-container">
-        <div class="sub-title my-2 text-sm text-blue-600">
-          搜索课程
-        </div>
-      </div>
       <div class="search-container">
         <div class="search-item">
-          <span class="label">课程号</span>
+          <span class="label"></span>
           <el-input
             v-model="searchId"
             clearable
@@ -18,7 +13,7 @@
           />
         </div>
         <div class="search-item">
-          <span class="label">课程名称</span>
+          <span class="label"></span>
           <el-input
             v-model="searchName"
             clearable
@@ -27,7 +22,7 @@
           />
         </div>
         <div class="search-item">
-          <span class="label">学分</span>
+          <span class="label"></span>
           <el-input
             v-model="searchCredit"
             clearable
@@ -36,7 +31,7 @@
           />
         </div>
         <div class="search-item">
-          <span class="label">学分</span>
+          <span class="label"></span>
           <el-input
             v-model="searchTeacherId"
             clearable
@@ -44,33 +39,21 @@
             placeholder="请输入教师号"
           />
         </div>
-        <div class="search-item">
-          <span class="label">课程时间</span>
-          <el-time-picker
-            v-model="timeRange"
-            is-range
-            range-separator="至"
-            start-placeholder="开始时间"
-            end-placeholder="结束时间"
-            class="inline-input"
-          />
-        </div>
         <el-button :icon="Search" circle @click="handleSearch"></el-button>
         <el-button :icon="Plus" circle @click="showAddCourseDialog"></el-button>
       </div>
     </div>
-    <div>
+    <div class="course-list">
       <el-row :gutter="20">
         <!-- 使用 v-for 指令遍历 paginatedCourses 列表，生成课程卡片 -->
         <el-col :span="6" v-for="course in paginatedCourses" :key="course.id">
-          <div class="grid-content ep-bg-purple">
+          <div class="course-item">
             <p><strong>课程ID:</strong> {{ course.id }}</p>
             <p><strong>课程名称:</strong> {{ course.courseName }}</p>
             <p><strong>学分:</strong> {{ course.credit }}</p>
-            <p><strong>教师ID:</strong> {{ course.teacherId }}</p>
-            <p><strong>日期:</strong> {{ course.date }}</p>
-            <p><strong>开始时间:</strong> {{ course.timeRange[0] }}</p>
-            <p><strong>结束时间:</strong> {{ course.timeRange[1] }}</p>
+            <p><strong>教师:</strong> {{ course.teacherName }}</p>
+            <p v-if="course.beginTime"><strong>开始时间:</strong> {{ course.beginTime.split('T')[1].split('.')[0] }}</p>
+            <p v-if="course.endTime"><strong>结束时间:</strong> {{ course.endTime.split('T')[1].split('.')[0] }}</p>
             <el-button
               :icon="Delete"
               circle
@@ -117,15 +100,17 @@
           />
         </el-form-item>
         <el-form-item label="课程时间" prop="timeRange">
-          <el-time-picker
-            v-model="newCourse.timeRange"
-            is-range
-            range-separator="至"
-            start-placeholder="开始时间"
-            end-placeholder="结束时间"
-            class="inline-input"
-          />
-        </el-form-item>
+    <el-time-picker
+      v-model="newCourse.beginTime"
+      placeholder="开始时间"
+      class="inline-input"
+    />
+    <el-time-picker
+      v-model="newCourse.endTime"
+      placeholder="结束时间"
+      class="inline-input"
+    />
+  </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="addCourseDialogVisible = false">取消</el-button>
@@ -139,15 +124,18 @@
 import { onMounted, ref, computed } from 'vue'
 import { Search, Delete, ArrowLeftBold, ArrowRightBold, Plus } from '@element-plus/icons-vue'
 import axios from 'axios'
+import { ElMessage } from 'element-plus'
 
 // 定义 Course 接口
 interface Course {
   id: string
   courseName: string
   credit: number
+  teacherName: string
   teacherId: number
   date: string
-  timeRange: string[]
+  beginTime: string
+  endTime: string
 }
 
 // 定义搜索框的绑定值
@@ -162,7 +150,7 @@ const courses = ref<Course[]>([])
 
 // 定义分页相关的状态
 const currentPage = ref(1)
-const pageSize = 12
+const pageSize = 8
 
 // 计算总页数
 const totalPages = computed(() => {
@@ -182,9 +170,11 @@ const newCourse = ref<Course>({
   id: '',
   courseName: '',
   credit: 0,
+  teacherName: '',
   teacherId: 0,
   date: '',
-  timeRange: []
+  beginTime: '',
+  endTime: ''
 })
 
 // 显示添加课程对话框
@@ -227,10 +217,6 @@ const handleSearch = async () => {
   if (searchName.value.trim() !== '') params.courseName = searchName.value
   if (searchCredit.value.trim() !== '') params.credit = searchCredit.value
   if (searchTeacherId.value.trim() !== '') params.teacherId = searchTeacherId.value
-  if (timeRange.value.length > 0) {
-    params.beginTime = timeRange.value[0]
-    params.endTime = timeRange.value[1]
-  }
 
   if (Object.keys(params).length === 0) {
     // 搜索框为空时，加载所有课程
@@ -254,13 +240,13 @@ const handleSelect = (item: Record<string, any>) => {
 // 处理添加课程事件
 const handleAddCourse = async () => {
   try {
-    const response = await axios.post('http://localhost:8080/api/courses/insertCourse', newCourse.value)
+        const response = await axios.post('http://localhost:8080/api/courses/insertCourse', newCourse.value)
     if (response.data === '添加成功') {
       courses.value.push(newCourse.value)
-      console.log('添加课程成功')
+      ElMessage.success('添加课程成功')
       addCourseDialogVisible.value = false
     } else {
-      console.error('添加课程失败:', response.data)
+      ElMessage.error('添加课程失败:', response.data)
     }
   } catch (error) {
     console.error('Failed to add course:', error)
@@ -273,9 +259,9 @@ const handleDeleteCourse = async (id: string) => {
     const response = await axios.post(`http://localhost:8080/api/courses/deleteCourse/${id}`)
     if (response.data === '删除成功') {
       courses.value = courses.value.filter(course => course.id !== id)
-      console.log('删除课程成功')
+      ElMessage.success('删除课程成功')
     } else {
-      console.error('删除课程失败:', response.data)
+      ElMessage.error('删除课程失败:', response.data)
     }
   } catch (error) {
     console.error('Failed to delete course:', error)
@@ -346,6 +332,13 @@ onMounted(() => {
 }
 
 /*课程卡片样式*/
+.course-list {
+  margin-top: 40px; /* 调整课程卡片与搜索框的距离 */
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
 .el-row {
   margin-bottom: 20px;
 }
@@ -356,20 +349,32 @@ onMounted(() => {
   border-radius: 4px;
 }
 
-.grid-content {
-  border-radius: 4px;
-  min-height: 36px;
-  border: 1px solid #ccc; /* 添加边框 */
-  padding: 10px;
-  background-color: #e4dcdc;
-  position: relative;
+.course-item {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  width: 80%; 
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.7s;
+  margin-bottom: 20px;
+  flex: 1;
+
+}
+
+.course-item:hover {
+  transform: translateY(-15px);
 }
 
 .delete-button {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background-color: #f1f3f5;
+  margin-top: 10px;
+  color: rgb(0, 0, 0);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.delete-button:hover {
+  background-color: #ff1a1a;
 }
 
 /*分页样式*/
