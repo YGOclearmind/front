@@ -3,14 +3,14 @@
     <h1>教室列表</h1>
     <div class="controls">
       <input type="text" v-model="searchQuery" placeholder="搜索教室" @input="filterClassrooms" class="search-input"/>
-      <button class="add-button" @click="toggleAddForm">新增教室</button>
+      <!-- <button class="add-button" @click="toggleAddForm">新增教室</button> -->
     </div>
     <div class="classroom-list">
       <div class="classroom-item" v-for="classroom in filteredClassrooms" :key="classroom.id">
         <div class="building"><strong>教学楼：</strong>{{ classroom.building }}</div>
         <div class="room-number"><strong>房间号：</strong>{{ classroom.roomNumber }}</div>
         <div class="capacity"><strong>容量：</strong>{{ classroom.capacity }} 人</div>
-        <button class="delete-button" @click="deleteClassroom(classroom.id)">删除</button>
+        <!-- <button class="delete-button" @click="deleteClassroom(classroom.id)">删除</button> -->
       </div>
     </div>
     <!-- 新增表单的遮罩层 -->
@@ -156,11 +156,11 @@ const addClassroom = async () => {
   padding: 20px; /* 增加padding以使区块变大 */
   width: calc(20% - 20px); /* 每一行显示6个，需要计算宽度 */
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
+  transition: transform 0.7s;
 }
 
 .classroom-item:hover {
-  transform: translateY(-5px);
+  transform: translateY(-10px);
 }
 
 .building, .room-number, .capacity {

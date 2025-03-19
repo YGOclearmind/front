@@ -40,7 +40,7 @@
           />
         </div>
         <el-button :icon="Search" circle @click="handleSearch"></el-button>
-        <el-button :icon="Plus" circle @click="showAddCourseDialog"></el-button>
+        <!-- <el-button :icon="Plus" circle @click="showAddCourseDialog"></el-button> -->
       </div>
     </div>
     <div class="course-list">
@@ -54,12 +54,12 @@
             <p><strong>教师:</strong> {{ course.teacherName }}</p>
             <p v-if="course.beginTime"><strong>开始时间:</strong> {{ course.beginTime.split('T')[1].split('.')[0] }}</p>
             <p v-if="course.endTime"><strong>结束时间:</strong> {{ course.endTime.split('T')[1].split('.')[0] }}</p>
-            <el-button
+            <!-- <el-button
               :icon="Delete"
               circle
               class="delete-button"
               @click="handleDeleteCourse(course.id)"
-            ></el-button>
+            ></el-button> -->
           </div>
         </el-col>
       </el-row>
