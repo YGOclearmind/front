@@ -105,35 +105,37 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <router-view v-if="!showLogin"></router-view>
-  <div class="login-container">
-    <div class="login" v-if="showLogin">
-      <el-form :model="form" :rules="rules" ref="formRef">
-        <h2>{{ isRegister ? '注册' : '登录' }}</h2>
-        <el-form-item label="账号 :" prop="username">
-          <el-input v-model="form.username" />
-        </el-form-item>
-        <el-form-item label="密码 :" prop="password">
-          <el-input v-model="form.password" type="password" />
-        </el-form-item>
-        <el-form-item v-if="isRegister" label="确认密码 :" prop="confirmPassword">
-          <el-input v-model="form.confirmPassword" type="password" />
-        </el-form-item>
-        <el-form-item v-if="!isRegister" label="用户类型 :" prop="type">
-          <el-radio-group v-model="form.type">
-            <el-radio label="student">学生</el-radio>
-            <el-radio label="teacher">教师</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item class="button-group">
-          <el-button type="primary" @click="isRegister ? handleRegister() : handleLogin()" :loading="isLoading">
-            {{ isRegister ? '注册' : '登录' }}
-          </el-button>
-          <el-button type="default" @click="isRegister = !isRegister">
-            {{ isRegister ? '返回登录' : '注册' }}
-          </el-button>
-        </el-form-item>
-      </el-form>
+  <div>
+    <router-view v-if="!showLogin"></router-view>
+    <div class="login-container">
+      <div class="login" v-if="showLogin">
+        <el-form :model="form" :rules="rules" ref="formRef">
+          <h2>{{ isRegister ? '注册' : '登录' }}</h2>
+          <el-form-item label="账号 :" prop="username">
+            <el-input v-model="form.username" />
+          </el-form-item>
+          <el-form-item label="密码 :" prop="password">
+            <el-input v-model="form.password" type="password" />
+          </el-form-item>
+          <el-form-item v-if="isRegister" label="确认密码 :" prop="confirmPassword">
+            <el-input v-model="form.confirmPassword" type="password" />
+          </el-form-item>
+          <el-form-item v-if="!isRegister" label="用户类型 :" prop="type">
+            <el-radio-group v-model="form.type">
+              <el-radio label="student">学生</el-radio>
+              <el-radio label="teacher">教师</el-radio>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item class="button-group">
+            <el-button type="primary" @click="isRegister ? handleRegister() : handleLogin()" :loading="isLoading">
+              {{ isRegister ? '注册' : '登录' }}
+            </el-button>
+            <el-button type="default" @click="isRegister = !isRegister">
+              {{ isRegister ? '返回登录' : '注册' }}
+            </el-button>
+          </el-form-item>
+        </el-form>
+      </div>
     </div>
   </div>
 </template>

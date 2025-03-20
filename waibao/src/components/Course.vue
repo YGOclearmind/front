@@ -1,4 +1,5 @@
 <template>
+  
   <div class="course-container">
     <h1>课程管理</h1>
     <div>
@@ -40,7 +41,7 @@
           />
         </div>
         <el-button :icon="Search" circle @click="handleSearch"></el-button>
-        <el-button :icon="Plus" circle @click="showAddCourseDialog"></el-button>
+        <el-button v-if="show1" :icon="Plus" circle @click="showAddCourseDialog"></el-button>
       </div>
     </div>
     <div class="course-list">
@@ -54,7 +55,7 @@
             <p><strong>教师:</strong> {{ course.teacherName }}</p>
             <p v-if="course.beginTime"><strong>开始时间:</strong> {{ course.beginTime.split('T')[1].split('.')[0] }}</p>
             <p v-if="course.endTime"><strong>结束时间:</strong> {{ course.endTime.split('T')[1].split('.')[0] }}</p>
-            <el-button
+            <el-button v-if="show2"
               :icon="Delete"
               circle
               class="delete-button"
@@ -125,7 +126,8 @@ import { onMounted, ref, computed } from 'vue'
 import { Search, Delete, ArrowLeftBold, ArrowRightBold, Plus } from '@element-plus/icons-vue'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
-
+import { useRoute } from 'vue-router'; // 引入 useRoute
+const route = useRoute(); // 声明 useRoute 的返回值
 // 定义 Course 接口
 interface Course {
   id: string
@@ -137,7 +139,8 @@ interface Course {
   beginTime: string
   endTime: string
 }
-
+const show1 = ref(false)
+const show2 = ref(false)
 // 定义搜索框的绑定值
 const searchId = ref('')
 const searchName = ref('')
@@ -284,7 +287,14 @@ const nextPage = () => {
 // 在组件挂载时加载所有课程数据
 onMounted(() => {
   loadCourses()
-})
+ if (route.path === '/teacher/course') {
+    console.log('teacher')
+    show1.value = true
+    show2.value = true
+}
+
+}
+)
 </script>
 
 <style scoped>
@@ -393,4 +403,6 @@ onMounted(() => {
   margin: 0 10px;
   font-size: 16px;
 }
+
+
 </style>

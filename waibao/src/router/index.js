@@ -7,40 +7,38 @@ import Classrooms from '@/components/classrooms.vue' // 教室管理组件
 import Student from '@/components/Student.vue'
 
 const routes = [
-
   {
     path: '/teacher',
-    component:Teacher,
+    component: Teacher,
     children: [
       {
         path: 'course',
-        name: 'Course',
+        name: 'TeacherCourse', // 修改名称为唯一值
         component: Course
       },
       {
         path: 'classrooms',
-        name: 'Classrooms',
+        name: 'TeacherClassrooms', // 修改名称为唯一值
         component: Classrooms
       }
     ]
   },
-   {
+  {
     path: '/student',
     component: Student,
     children: [
       {
         path: 'classrooms',
-        name: 'Classrooms',
+        name: 'StudentClassrooms', // 修改名称为唯一值
         component: Classrooms
-      }
-      ,
+      },
       {
         path: 'course',
-        name: 'Course',
+        name: 'StudentCourse', // 修改名称为唯一值
         component: Course
       }
     ]
-   }
+  }
 ]
 
 const router = createRouter({
