@@ -3,14 +3,14 @@
     <h1>教室列表</h1>
     <div class="controls">
       <input type="text" v-model="searchQuery" placeholder="搜索教室" @input="filterClassrooms" class="search-input"/>
-      <!-- <button class="add-button" @click="toggleAddForm">新增教室</button> -->
+      <button v-if="show1" class="add-button" @click="toggleAddForm">新增教室</button>
     </div>
     <div class="classroom-list">
       <div class="classroom-item" v-for="classroom in filteredClassrooms" :key="classroom.id">
         <div class="building"><strong>教学楼：</strong>{{ classroom.building }}</div>
         <div class="room-number"><strong>房间号：</strong>{{ classroom.roomNumber }}</div>
         <div class="capacity"><strong>容量：</strong>{{ classroom.capacity }} 人</div>
-        <!-- <button class="delete-button" @click="deleteClassroom(classroom.id)">删除</button> -->
+        <button v-if="show2" class="delete-button" @click="deleteClassroom(classroom.id)">删除</button>
       </div>
     </div>
     <!-- 新增表单的遮罩层 -->
@@ -40,7 +40,10 @@
 <script setup>
 import axios from 'axios'
 import { ref, onMounted } from 'vue'
-
+import { useRoute } from 'vue-router'
+const route= useRoute()
+const show1 = ref(false)
+const show2 = ref(false)
 const classrooms = ref([])
 const filteredClassrooms = ref([])
 const searchQuery = ref('')
@@ -53,7 +56,16 @@ const newClassroom = ref({
 
 onMounted(() => {
   fetchClassrooms()
-})
+  if(route.path==='/teacher/classrooms')
+{
+  console.log(2)
+  show1.value=true
+  show2.value=true
+}
+console.log(route.path)
+}
+
+)
 
 const fetchClassrooms = async () => {
   try {
