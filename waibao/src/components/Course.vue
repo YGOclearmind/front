@@ -40,13 +40,13 @@
           />
         </div>
         <el-button :icon="Search" circle @click="handleSearch"></el-button>
-        <!-- <el-button :icon="Plus" circle @click="showAddCourseDialog"></el-button> -->
+        <el-button :icon="Plus" circle @click="showAddCourseDialog"></el-button>
       </div>
     </div>
     <div class="course-list">
       <el-row :gutter="20">
         <!-- 使用 v-for 指令遍历 paginatedCourses 列表，生成课程卡片 -->
-        <el-col :span="6" v-for="course in paginatedCourses" :key="course.id">
+        <el-col :span="4" v-for="course in paginatedCourses" :key="course.id">
           <div class="course-item">
             <p><strong>课程ID:</strong> {{ course.id }}</p>
             <p><strong>课程名称:</strong> {{ course.courseName }}</p>
@@ -54,12 +54,12 @@
             <p><strong>教师:</strong> {{ course.teacherName }}</p>
             <p v-if="course.beginTime"><strong>开始时间:</strong> {{ course.beginTime.split('T')[1].split('.')[0] }}</p>
             <p v-if="course.endTime"><strong>结束时间:</strong> {{ course.endTime.split('T')[1].split('.')[0] }}</p>
-            <!-- <el-button
+            <el-button
               :icon="Delete"
               circle
               class="delete-button"
               @click="handleDeleteCourse(course.id)"
-            ></el-button> -->
+            ></el-button>
           </div>
         </el-col>
       </el-row>
@@ -143,14 +143,13 @@ const searchId = ref('')
 const searchName = ref('')
 const searchCredit = ref('')
 const searchTeacherId = ref('')
-const timeRange = ref<string[]>([])
 
 // 定义课程列表
 const courses = ref<Course[]>([])
 
 // 定义分页相关的状态
 const currentPage = ref(1)
-const pageSize = 8
+const pageSize = 12
 
 // 计算总页数
 const totalPages = computed(() => {
@@ -334,9 +333,10 @@ onMounted(() => {
 /*课程卡片样式*/
 .course-list {
   margin-top: 40px; /* 调整课程卡片与搜索框的距离 */
-  display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
+  width: 100%;
+  padding-left: 20px;
 }
 
 .el-row {
@@ -383,7 +383,7 @@ onMounted(() => {
   justify-content: center;
   align-items: center;
   margin-top: 20px;
-  position: fixed;
+  position: relative;
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
