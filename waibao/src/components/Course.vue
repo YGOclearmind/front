@@ -1,5 +1,4 @@
 <template>
-  
   <div class="course-container">
     <h1>课程管理</h1>
     <div>
@@ -53,8 +52,8 @@
             <p><strong>课程名称:</strong> {{ course.courseName }}</p>
             <p><strong>学分:</strong> {{ course.credit }}</p>
             <p><strong>教师:</strong> {{ course.teacherName }}</p>
-            <p v-if="course.beginTime"><strong>开始时间:</strong> {{ course.beginTime}}</p>
-            <p v-if="course.endTime"><strong>结束时间:</strong> {{ course.endTime}}</p>
+            <p v-if="course.beginTime"><strong>开始时间:</strong> {{ course.beginTime }}</p>
+            <p v-if="course.endTime"><strong>结束时间:</strong> {{ course.endTime }}</p>
             <el-button v-if="show2"
               :icon="Delete"
               circle
@@ -67,14 +66,14 @@
     </div>
     <div class="pagination-container">
       <el-button
-        v-if="currentPage > 1"
+       v-if="currentPage > 1"
         :icon="ArrowLeftBold"
         circle
         @click="prevPage"
       ></el-button>
       <span class="page-number">{{ currentPage }}</span>
       <el-button
-        v-if="currentPage"
+      
         :icon="ArrowRightBold"
         circle
         @click="nextPage"
@@ -102,17 +101,17 @@
           />
         </el-form-item>
         <el-form-item label="课程时间" prop="timeRange">
-    <el-time-picker
-      v-model="newCourse.beginTime"
-      placeholder="开始时间"
-      class="inline-input"
-    />
-    <el-time-picker
-      v-model="newCourse.endTime"
-      placeholder="结束时间"
-      class="inline-input"
-    />
-  </el-form-item>
+          <el-time-picker
+            v-model="newCourse.beginTime"
+            placeholder="开始时间"
+            class="inline-input"
+          />
+          <el-time-picker
+            v-model="newCourse.endTime"
+            placeholder="结束时间"
+            class="inline-input"
+          />
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="addCourseDialogVisible = false">取消</el-button>
@@ -129,6 +128,7 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'; // 引入 useRoute
 const route = useRoute(); // 声明 useRoute 的返回值
+
 // 定义 Course 接口
 interface Course {
   id: string
@@ -140,8 +140,10 @@ interface Course {
   beginTime: string
   endTime: string
 }
+
 const show1 = ref(false)
 const show2 = ref(false)
+
 // 定义搜索框的绑定值
 const searchId = ref('')
 const searchName = ref('')
@@ -154,6 +156,7 @@ const courses = ref<Course[]>([])
 // 定义分页相关的状态
 const currentPage = ref(1)
 const pageSize = 12
+let hasMoreData = ref(true)
 
 // 计算总页数
 const totalPages = computed(() => {
@@ -162,9 +165,8 @@ const totalPages = computed(() => {
 
 // 计算当前页显示的课程
 const paginatedCourses = computed(() => {
-  const start = 0
-  const end = start + pageSize
-  return courses.value.slice(start, end)
+  
+  return courses.value
 })
 
 // 添加课程对话框的状态
@@ -204,14 +206,16 @@ const createFilter = (queryString: string) => {
 }
 
 // 加载所有课程数据
-const loadCourses = async () => {
+const loadCourses = async (page: number = 1) => {
   try {
-    const response = await axios.get('http://localhost:8080/api/courses/getAllCourses', {
-      params: {
-        page: currentPage.value,
-        num: pageSize
-      }
-    })
+    const params = {
+      num: pageSize,
+      page: page
+    }
+    const response = await axios.get('http://localhost:8080/api/courses/getAllCourses', { params })
+    if (response.data.length < pageSize) {
+      hasMoreData.value = false
+    }
     courses.value = response.data
   } catch (error) {
     console.error('Failed to load courses:', error)
@@ -248,11 +252,13 @@ const handleSelect = (item: Record<string, any>) => {
 // 处理添加课程事件
 const handleAddCourse = async () => {
   try {
-        const response = await axios.post('http://localhost:8080/api/courses/insertCourse', newCourse.value)
+    const response = await axios.post('http://localhost:8080/api/courses/insertCourse', newCourse.value)
     if (response.data === '添加成功') {
       courses.value.push(newCourse.value)
       ElMessage.success('添加课程成功')
       addCourseDialogVisible.value = false
+      // 重新加载当前页的课程数据
+      loadCourses(currentPage.value)
     } else {
       ElMessage.error('添加课程失败:', response.data)
     }
@@ -268,6 +274,8 @@ const handleDeleteCourse = async (id: string) => {
     if (response.data === '删除成功') {
       courses.value = courses.value.filter(course => course.id !== id)
       ElMessage.success('删除课程成功')
+      // 重新加载当前页的课程数据
+      loadCourses(currentPage.value)
     } else {
       ElMessage.error('删除课程失败:', response.data)
     }
@@ -277,21 +285,20 @@ const handleDeleteCourse = async (id: string) => {
 }
 
 // 切换到上一页
-const prevPage= async () => {
+const prevPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--
-    await loadCourses()
+    loadCourses(currentPage.value)
   }
 }
 
 // 切换到下一页
-const nextPage = async () => {
-  currentPage.value++
-  await loadCourses()
-  if(courses.value.length === 0){
-    currentPage.value--
-    await loadCourses()
-    ElMessage.error('已经是最后一页了')
+const nextPage = () => {
+  if (hasMoreData.value) {
+    currentPage.value++
+    loadCourses(currentPage.value)
+  } else {
+    ElMessage.warning('没有更多数据')
   }
   
 }
@@ -299,14 +306,12 @@ const nextPage = async () => {
 // 在组件挂载时加载所有课程数据
 onMounted(() => {
   loadCourses()
- if (route.path === '/teacher/course') {
+  if (route.path === '/teacher/course') {
     console.log('teacher')
     show1.value = true
     show2.value = true
-}
-
-}
-)
+  }
+})
 </script>
 
 <style scoped>
@@ -376,12 +381,11 @@ onMounted(() => {
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 20px;
-  width: 80%; 
+  width: 80%;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   transition: transform 0.7s;
   margin-bottom: 20px;
   flex: 1;
-
 }
 
 .course-item:hover {
@@ -415,6 +419,4 @@ onMounted(() => {
   margin: 0 10px;
   font-size: 16px;
 }
-
-
 </style>
