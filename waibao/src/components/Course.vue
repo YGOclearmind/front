@@ -53,8 +53,8 @@
             <p><strong>课程名称:</strong> {{ course.courseName }}</p>
             <p><strong>学分:</strong> {{ course.credit }}</p>
             <p><strong>教师:</strong> {{ course.teacherName }}</p>
-            <p v-if="course.beginTime"><strong>开始时间:</strong> {{ course.beginTime.split('T')[1].split('.')[0] }}</p>
-            <p v-if="course.endTime"><strong>结束时间:</strong> {{ course.endTime.split('T')[1].split('.')[0] }}</p>
+            <p v-if="course.beginTime"><strong>开始时间:</strong> {{ course.beginTime}}</p>
+            <p v-if="course.endTime"><strong>结束时间:</strong> {{ course.endTime}}</p>
             <el-button v-if="show2"
               :icon="Delete"
               circle
@@ -74,10 +74,11 @@
       ></el-button>
       <span class="page-number">{{ currentPage }}</span>
       <el-button
-        v-if="currentPage < totalPages"
+        v-if="currentPage"
         :icon="ArrowRightBold"
         circle
         @click="nextPage"
+        
       ></el-button>
     </div>
     <!-- 添加课程对话框 -->
@@ -161,7 +162,7 @@ const totalPages = computed(() => {
 
 // 计算当前页显示的课程
 const paginatedCourses = computed(() => {
-  const start = (currentPage.value - 1) * pageSize
+  const start = 0
   const end = start + pageSize
   return courses.value.slice(start, end)
 })
@@ -205,7 +206,12 @@ const createFilter = (queryString: string) => {
 // 加载所有课程数据
 const loadCourses = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/courses/getAllCourses')
+    const response = await axios.get('http://localhost:8080/api/courses/getAllCourses', {
+      params: {
+        page: currentPage.value,
+        num: pageSize
+      }
+    })
     courses.value = response.data
   } catch (error) {
     console.error('Failed to load courses:', error)
@@ -271,17 +277,23 @@ const handleDeleteCourse = async (id: string) => {
 }
 
 // 切换到上一页
-const prevPage = () => {
+const prevPage= async () => {
   if (currentPage.value > 1) {
     currentPage.value--
+    await loadCourses()
   }
 }
 
 // 切换到下一页
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++
+const nextPage = async () => {
+  currentPage.value++
+  await loadCourses()
+  if(courses.value.length === 0){
+    currentPage.value--
+    await loadCourses()
+    ElMessage.error('已经是最后一页了')
   }
+  
 }
 
 // 在组件挂载时加载所有课程数据
