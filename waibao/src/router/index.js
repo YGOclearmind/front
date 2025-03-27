@@ -4,7 +4,8 @@ import classrooms from '@/components/classrooms.vue' // 教室管理组件
 import Course from '@/components/Course.vue' // 导入课程组件
 import Teacher from '@/components/Teacher.vue' // 教师管理组件
 import Classrooms from '@/components/classrooms.vue' // 教室管理组件
-import Student from '@/components/Student.vue'
+import Student from '@/components/Student.vue'  
+import Schedule from '@/components/Schedule.vue'
 
 const routes = [
   {
@@ -20,6 +21,11 @@ const routes = [
         path: 'classrooms',
         name: 'TeacherClassrooms', // 修改名称为唯一值
         component: Classrooms
+      },
+      {
+        path: 'schedule',
+        name: 'TeacherSchedule', // 修改名称为唯一值
+        component: Schedule
       }
     ]
   },
