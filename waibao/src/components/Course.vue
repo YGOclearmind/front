@@ -362,11 +362,14 @@ onMounted(() => {
 
 /*课程卡片样式*/
 .course-list {
-  margin-top: 40px; /* 调整课程卡片与搜索框的距离 */
+  margin-top: 20px; /* 调整课程卡片与搜索框的距离 */
   flex-wrap: wrap;
   justify-content: space-between;
   width: 100%;
   padding-left: 20px;
+  display: flex;
+  min-height: 684px; /* 设置最小高度，确保始终容纳两排卡片 */
+  box-sizing: border-box;
 }
 
 .el-row {
