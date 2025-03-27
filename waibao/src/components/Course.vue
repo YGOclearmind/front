@@ -423,4 +423,5 @@ onMounted(() => {
   margin: 0 10px;
   font-size: 16px;
 }
+
 </style>

@@ -115,8 +115,8 @@ const handleLogin = async () => {
 <template>
   <div>
     <router-view v-if="!showLogin"></router-view>
-    <div class="login-container">
-      <div class="login" v-if="showLogin">
+    <div class="login-container" v-if="showLogin">
+      <div class="login">
         <el-form :model="form" :rules="rules" ref="formRef">
           <h2>{{ isRegister ? '注册' : '登录' }}</h2>
           <el-form-item label="账号 :" prop="username">
@@ -159,6 +159,7 @@ const handleLogin = async () => {
     </div>
   </div>
 </template>
+
 
 <style scoped>
 .login-container {
@@ -207,4 +208,6 @@ const handleLogin = async () => {
   border: none;
   cursor: pointer;
 }
+
+
 </style>
