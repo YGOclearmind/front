@@ -1,8 +1,9 @@
 <script setup>
 import { ref, reactive,onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElButton, ElMessage } from 'element-plus'
 import axios from 'axios'
 import router from './router'
+import {Hide,View} from '@element-plus/icons-vue'
 
 onMounted(() => {
   
@@ -17,6 +18,12 @@ const form = ref({
   confirmPassword: '',
   type: 'student' // 默认用户类型为学生
 })
+
+// 控制密码显示/隐藏
+const passwordVisible = ref(false)
+const togglePasswordVisibility = () => {
+  passwordVisible.value = !passwordVisible.value
+}
 
 //定义表单校验规则
 const rules = reactive({
@@ -56,7 +63,8 @@ const handleRegister = async () => {
     await formRef.value.validate()
     const response = await axios.post('http://localhost:8080/user/register', {
       username: form.value.username,
-      password: form.value.password
+      password: form.value.password,
+      type: form.value.type === 'student' ? 1 : 2 // 1代表学生，2代表教师
     })
     if (response.data === '注册成功') {
       ElMessage.success('注册成功')
@@ -112,15 +120,27 @@ const handleLogin = async () => {
         <el-form :model="form" :rules="rules" ref="formRef">
           <h2>{{ isRegister ? '注册' : '登录' }}</h2>
           <el-form-item label="账号 :" prop="username">
-            <el-input v-model="form.username" />
+            <el-input v-model="form.username" placeholder="请输入账号" />
           </el-form-item>
           <el-form-item label="密码 :" prop="password">
-            <el-input v-model="form.password" type="password" />
+            <el-input
+              v-model="form.password"
+              :type="passwordVisible ? 'text' : 'password'"
+              placeholder="请输入密码"
+            >
+              <template #suffix>
+                <el-button
+                  :icon="passwordVisible ? View : Hide"
+                  @click="togglePasswordVisibility"
+                  class="hide-button"
+                />
+              </template>
+            </el-input>
           </el-form-item>
           <el-form-item v-if="isRegister" label="确认密码 :" prop="confirmPassword">
             <el-input v-model="form.confirmPassword" type="password" />
           </el-form-item>
-          <el-form-item v-if="!isRegister" label="用户类型 :" prop="type">
+          <el-form-item label="用户类型 :" prop="type">
             <el-radio-group v-model="form.type">
               <el-radio label="student">学生</el-radio>
               <el-radio label="teacher">教师</el-radio>
@@ -169,5 +189,22 @@ const handleLogin = async () => {
 .el-button {
   width: 48%;
   margin-top: 10px;
+}
+
+/* 保证输入框大小一致 */
+.el-input {
+  width: 100%;
+  height: 40px; /* 确保高度一致 */
+  box-sizing: border-box;
+}
+
+.hide-button {
+  width: auto;
+  height: 40px;
+  border-radius: 50%;
+  color: #606266;
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 </style>

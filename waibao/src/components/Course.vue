@@ -77,6 +77,7 @@
         :icon="ArrowRightBold"
         circle
         @click="nextPage"
+        
       ></el-button>
     </div>
     <!-- 添加课程对话框 -->
@@ -215,6 +216,9 @@ const loadCourses = async (page: number = 1) => {
     if (response.data.length < pageSize) {
       hasMoreData.value = false
     }
+    else {
+      hasMoreData.value = true
+    }
     courses.value = response.data
   } catch (error) {
     console.error('Failed to load courses:', error)
@@ -299,6 +303,7 @@ const nextPage = () => {
   } else {
     ElMessage.warning('没有更多数据')
   }
+  
 }
 
 // 在组件挂载时加载所有课程数据
@@ -384,6 +389,7 @@ onMounted(() => {
   transition: transform 0.7s;
   margin-bottom: 20px;
   flex: 1;
+  min-height: 280px; /*设置最小高度，确保卡片高度一致 */
 }
 
 .course-item:hover {

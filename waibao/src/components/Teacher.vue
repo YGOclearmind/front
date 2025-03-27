@@ -28,7 +28,7 @@
                   <el-menu-item index="1-2"><RouterLink :to="{ name: 'TeacherCourse' }">课程</RouterLink></el-menu-item>
                 </el-menu-item-group>
                 <el-menu-item-group title="Group Two">
-                  <el-menu-item index="1-3">item three</el-menu-item>
+                  <el-menu-item index="1-3"><RouterLink :to="{name:'TeacherSchedule'}">个人课表</RouterLink></el-menu-item>
                 </el-menu-item-group>
                 <el-sub-menu index="1-4">
                   <template #title>item four</template>
