@@ -48,12 +48,18 @@
         <!-- 使用 v-for 指令遍历 paginatedCourses 列表，生成课程卡片 -->
         <el-col :span="4" v-for="course in paginatedCourses" :key="course.id">
           <div class="course-item">
-            <p><strong>课程ID:</strong> {{ course.id }}</p>
-            <p><strong>课程名称:</strong> {{ course.courseName }}</p>
-            <p><strong>学分:</strong> {{ course.credit }}</p>
-            <p><strong>教师:</strong> {{ course.teacherName }}</p>
-            <p v-if="course.beginTime"><strong>开始时间:</strong> {{ course.beginTime }}</p>
-            <p v-if="course.endTime"><strong>结束时间:</strong> {{ course.endTime }}</p>
+            <!-- 内容区域 -->
+            <div class="course-item-content">
+              <p><strong>学期:</strong> {{ course.semester }}</p>
+              <p><strong>课程ID:</strong> {{ course.id }}</p>
+              <p><strong>课程名称:</strong> {{ course.courseName }}</p>
+              <p><strong>学分:</strong> {{ course.credit }}</p>
+              <p><strong>教师:</strong> {{ course.teacherName }}</p>
+              <p v-if="course.beginWeek && course.endWeek"><strong>周次:</strong> {{ course.beginWeek }} — {{ course.endWeek }}</p>
+              <p v-if="course.classroom || course.building"><strong>教室:</strong> {{course.building}} {{ course.classroom }}</p>
+              <p v-if="course.compositionClasses"><strong>教学班:</strong> {{ course.compositionClasses }}</p>
+            </div>
+            <!-- 固定按钮区域 -->
             <el-button v-if="show2"
               :icon="Delete"
               circle
@@ -92,26 +98,6 @@
         <el-form-item label="教师ID" prop="teacherId">
           <el-input v-model="newCourse.teacherId" />
         </el-form-item>
-        <el-form-item label="上课日期" prop="date">
-          <el-date-picker
-            v-model="newCourse.date"
-            type="date"
-            placeholder="选择日期"
-            class="inline-input"
-          />
-        </el-form-item>
-        <el-form-item label="课程时间" prop="timeRange">
-          <el-time-picker
-            v-model="newCourse.beginTime"
-            placeholder="开始时间"
-            class="inline-input"
-          />
-          <el-time-picker
-            v-model="newCourse.endTime"
-            placeholder="结束时间"
-            class="inline-input"
-          />
-        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="addCourseDialogVisible = false">取消</el-button>
@@ -131,14 +117,19 @@ const route = useRoute(); // 声明 useRoute 的返回值
 
 // 定义 Course 接口
 interface Course {
+  semester: string
   id: string
   courseName: string
   credit: number
   teacherName: string
-  teacherId: number
+  teacherId: string
+  classesName: string
+  compositionClasses: string
+  classroom: string
+  building: string
   date: string
-  beginTime: string
-  endTime: string
+  beginWeek: number
+  endWeek: number
 }
 
 const show1 = ref(false)
@@ -172,14 +163,19 @@ const paginatedCourses = computed(() => {
 // 添加课程对话框的状态
 const addCourseDialogVisible = ref(false)
 const newCourse = ref<Course>({
+  semester: '',
   id: '',
   courseName: '',
   credit: 0,
   teacherName: '',
-  teacherId: 0,
+  teacherId: '0',
+  classesName: '',
+  compositionClasses: '',
+  classroom: '',
+  building: '',
   date: '',
-  beginTime: '',
-  endTime: ''
+  beginWeek: 0,
+  endWeek: 0,
 })
 
 // 显示添加课程对话框
@@ -309,8 +305,8 @@ const nextPage = () => {
 // 在组件挂载时加载所有课程数据
 onMounted(() => {
   loadCourses()
-  if (route.path === '/teacher/course') {
-    console.log('teacher')
+  if (route.path !== '/student/course') {
+    console.log('not student')
     show1.value = true
     show2.value = true
   }
@@ -392,11 +388,29 @@ onMounted(() => {
   transition: transform 0.7s;
   margin-bottom: 20px;
   flex: 1;
-  min-height: 280px; /*设置最小高度，确保卡片高度一致 */
+  min-height: 280px; /* 设置最小高度，确保卡片高度一致 */
+  max-height: 280px; /* 设置最大高度，确保卡片高度一致 */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* 内容和按钮分开布局 */
+  overflow: hidden; /* 隐藏超出内容 */
 }
 
 .course-item:hover {
   transform: translateY(-15px);
+  overflow: hidden; /* 鼠标悬停时不影响布局 */
+}
+
+.course-item-content {
+  flex: 1;
+  overflow: auto; /* 内容区域可以滚动 */
+  scrollbar-width: none; /* 针对 Firefox 隐藏滚动条 */
+  -ms-overflow-style: none; /* 针对 IE 和 Edge 隐藏滚动条 */
+}
+
+/* 针对 Webkit 浏览器（如 Chrome 和 Safari）隐藏滚动条 */
+.course-item-content::-webkit-scrollbar {
+  display: none;
 }
 
 .delete-button {
@@ -404,10 +418,11 @@ onMounted(() => {
   color: rgb(0, 0, 0);
   cursor: pointer;
   transition: background-color 0.2s;
+  align-self: flex-end; /* 将按钮靠右对齐 */
 }
 
 .delete-button:hover {
-  background-color: #ff1a1a;
+  background-color: #ebe8e8;
 }
 
 /*分页样式*/

@@ -64,7 +64,7 @@ const handleRegister = async () => {
     const response = await axios.post('http://localhost:8080/user/register', {
       username: form.value.username,
       password: form.value.password,
-      type: form.value.type === 'student' ? 1 : 2 // 1代表学生，2代表教师
+      type: form.value.type === 'student' ? 1 : form.value.type === 'teacher' ? 2 : 3 // 1代表学生，2代表教师，3代表管理员
     })
     if (response.data === '注册成功') {
       ElMessage.success('注册成功')
@@ -82,34 +82,36 @@ const handleRegister = async () => {
 
 //登录请求
 const handleLogin = async () => {
-  isLoading.value = true
+  isLoading.value = true;
 
   try {
-    await formRef.value.validate()
+    await formRef.value.validate();
     const response = await axios.post('http://localhost:8080/user/login', {
       username: form.value.username,
       password: form.value.password,
-      type: form.value.type === 'student' ? 1 : 2 // 1代表学生，2代表教师
-    })
+      type: form.value.type === 'student' ? 1 : form.value.type === 'teacher' ? 2 : 3 // 1代表学生，2代表教师，3代表管理员
+    });
     if (response.data.includes('登录成功')) {
-      ElMessage.success('登录成功')
-      showLogin.value = false
+      ElMessage.success('登录成功');
+      showLogin.value = false;
       if (form.value.type === 'student') {
-        router.push('/student')
+        router.push('/student');
       } else if (form.value.type === 'teacher') {
-        router.push('/teacher')
+        router.push('/teacher');
+      } else if (form.value.type === 'administrator') {
+        router.push('/admin'); // 跳转到管理员页面
       }
     } else {
-      ElMessage.error(response.data)
+      ElMessage.error(response.data);
     }
   } catch (error) {
-    console.error('登录请求失败:', error)
-    ElMessage.error('用户或密码错误')
-    throw error
+    console.error('登录请求失败:', error);
+    ElMessage.error('用户或密码错误');
+    throw error;
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 </script>
 
 <template>
@@ -144,6 +146,7 @@ const handleLogin = async () => {
             <el-radio-group v-model="form.type">
               <el-radio label="student">学生</el-radio>
               <el-radio label="teacher">教师</el-radio>
+              <el-radio label="administrator">管理员</el-radio>
             </el-radio-group>
           </el-form-item>
           <el-form-item class="button-group">

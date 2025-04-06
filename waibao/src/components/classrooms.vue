@@ -56,7 +56,7 @@ const newClassroom = ref({
 
 onMounted(() => {
   fetchClassrooms()
-  if(route.path==='/teacher/classrooms')
+  if(route.path!=='/student/classrooms')
 {
   console.log(2)
   show1.value=true
