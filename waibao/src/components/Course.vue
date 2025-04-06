@@ -46,7 +46,7 @@
     <div class="course-list">
       <el-row :gutter="20">
         <!-- 使用 v-for 指令遍历 paginatedCourses 列表，生成课程卡片 -->
-        <el-col :span="4" v-for="course in paginatedCourses" :key="course.id">
+        <el-col :span="4" v-for="course in paginatedCourses" :key="`${course.id}-${course.compositionClasses}`">
           <div class="course-item">
             <!-- 内容区域 -->
             <div class="course-item-content">
@@ -58,6 +58,7 @@
               <p v-if="course.beginWeek && course.endWeek"><strong>周次:</strong> {{ course.beginWeek }} — {{ course.endWeek }}</p>
               <p v-if="course.classroom || course.building"><strong>教室:</strong> {{course.building}} {{ course.classroom }}</p>
               <p v-if="course.compositionClasses"><strong>教学班:</strong> {{ course.compositionClasses }}</p>
+        
             </div>
             <!-- 固定按钮区域 -->
             <el-button v-if="show2"
@@ -113,6 +114,7 @@ import { Search, Delete, ArrowLeftBold, ArrowRightBold, Plus } from '@element-pl
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'; // 引入 useRoute
+import { nextTick } from 'vue';
 const route = useRoute(); // 声明 useRoute 的返回值
 
 // 定义 Course 接口
@@ -216,6 +218,7 @@ const loadCourses = async (page: number = 1) => {
       hasMoreData.value = true
     }
     courses.value = response.data
+    await nextTick()
   } catch (error) {
     console.error('Failed to load courses:', error)
   }
