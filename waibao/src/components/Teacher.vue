@@ -50,7 +50,7 @@
             </el-menu>
           </el-col>
         </div>
-        <div class="container" :style="{ width: isCollapse ? 'calc(100% - 63.33px)' : '80%' }">
+        <div class="container" :style="{ width: isCollapse ? 'calc(100% - 63.33px)' : 'calc(100% - 20%)' }">
           <div class="welcome">
             <div class="welcome-title">欢迎使用智能排课系统</div>
             <div class="admin" style="align-items: center; display: flex;">
@@ -95,16 +95,16 @@ const { circleUrl, sizeList } = toRefs(state)
 const isCollapse = ref(false) 
 //检测视口变化
 const checkMobile = () => {
-  isCollapse.value = window.innerWidth <= 768;
+  isCollapse.value = window.innerWidth <= 768; // 小于等于 768px 时折叠导航
 };
 
 onMounted(() => {
-  checkMobile();
-  window.addEventListener('resize', checkMobile);
+  checkMobile(); // 初始化时检查屏幕宽度
+  window.addEventListener('resize', checkMobile); // 监听窗口大小变化
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', checkMobile);
+  window.removeEventListener('resize', checkMobile); // 移除监听器
 });
 </script>
 
@@ -226,10 +226,12 @@ header {
 
   /* 新增图标模式样式 */
   .list {
-    width: 64px !important;
+    width: 64px; /* 默认宽度 */
+    transition: width 0.3s ease-in-out;
   }
   .container {
-    width: calc(100% - 64px) !important;
+    width: calc(100% - 64px); /* 默认宽度 */
+    transition: width 0.3s ease-in-out;
   }
   .el-menu-item span,
   .el-menu-item,
