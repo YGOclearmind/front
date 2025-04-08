@@ -59,7 +59,6 @@
               class="calendar-event"
               :style="{ backgroundColor: getEventColor(event) }"
             >
-            
               <span class="event-title">{{ event.courseName }}</span>
               <span class="event-location">{{ event.classroomId }}</span>
             </div>
@@ -72,7 +71,7 @@
     <div v-if="currentView === 'week'" class="week-view-container">
       <div class="week-header">
         <span class="week-title">
-          {{ weekStartDate.toLocaleDateString('zh-CN') }} - {{ weekEndDate.toLocaleDateString('zh-CN') }}
+          {{ formatDate(weekStartDate) }} - {{ formatDate(weekEndDate) }}
         </span>
         <el-button-group>
           <el-button size="small" @click="selectWeek('prev-week')">上一周</el-button>
@@ -101,16 +100,16 @@
             第 {{ period }} 节
           </div>
           <div
-            v-for="day in weekDays"
-            :key="day.date"
-            class="week-period"
-            :class="{ 'has-class': hasClass(day.date, period) }"
-          >
-            <template v-if="hasClass(day.date, period)">
-              <div class="course-name">{{ getCourseInfo(day.date, period).courseName }}</div>
-              <div class="classroom">{{ getCourseInfo(day.date, period).classroomId }}</div>
-            </template>
-          </div>
+  v-for="day in weekDays"
+  :key="day.date"
+  class="week-period"
+  :class="{ 'has-class': hasClass(day.date, period) }"
+>
+  <template v-if="hasClass(day.date, period)">
+    <div class="course-name">{{ getCourseInfo(day.date, period).courseName }}</div>
+    <div class="classroom">{{ getCourseInfo(day.date, period).classroomId }}</div>
+  </template>
+</div>
         </div>
       </div>
     </div>
@@ -143,7 +142,6 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import axios from 'axios';
 
@@ -244,24 +242,25 @@ export default {
     };
 
     const generateWeekDays = () => {
-      const today = new Date();
-      const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() - today.getDay());
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
+  const startOfWeek = new Date(weekStartDate.value);
+  
+  // 强制对齐到周一（假设1=周一，0=周日）
+  const dayOfWeek = startOfWeek.getDay() || 7; // 如果是周日，返回7
+  if (dayOfWeek !== 1) {
+    startOfWeek.setDate(startOfWeek.getDate() - (dayOfWeek - 1)); // 调整到本周一
+  }
 
-      weekStartDate.value = startOfWeek;
-      weekEndDate.value = endOfWeek;
-
-      const days = [];
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(startOfWeek);
-        date.setDate(startOfWeek.getDate() + i);
-        days.push({ date });
-      }
-      weekDays.value = days;
-    };
-
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(startOfWeek);
+    date.setDate(startOfWeek.getDate() + i);
+    days.push({ date });
+  }
+  
+  weekDays.value = days;
+  weekEndDate.value = new Date(startOfWeek);
+  weekEndDate.value.setDate(startOfWeek.getDate() + 6); // 本周日
+};
     const selectDate = (option) => {
       const date = new Date(currentDate.value);
       switch (option) {
@@ -287,68 +286,108 @@ export default {
     };
 
     const selectWeek = (option) => {
-      const startOfWeek = new Date(weekStartDate.value);
-      switch (option) {
-        case 'prev-week':
-          startOfWeek.setDate(startOfWeek.getDate() - 7);
-          break;
-        case 'next-week':
-          startOfWeek.setDate(startOfWeek.getDate() + 7);
-          break;
-        case 'today':
-          const today = new Date();
-          today.setDate(today.getDate() - today.getDay());
-          weekStartDate.value = today;
-          generateWeekDays();
-          return;
-      }
-      weekStartDate.value = startOfWeek;
-      generateWeekDays();
-    };
+  const newStartDate = new Date(weekStartDate.value); // 创建新日期对象
+  
+  switch (option) {
+    case 'prev-week':
+      newStartDate.setDate(newStartDate.getDate() - 7); // 上7天
+      break;
+    case 'next-week':
+      newStartDate.setDate(newStartDate.getDate() + 7); // 下7天
+      break;
+    case 'today':
+      const today = new Date();
+      today.setDate(today.getDate() - today.getDay() + 1); // 调整到本周一
+      newStartDate.setTime(today.getTime());
+      break;
+  }
 
+  weekStartDate.value = newStartDate; // 更新响应式变量
+  generateWeekDays(); // 重新计算周数据
+};
+    // 修正：正确解析 ISO 8601 日期并匹配
     const getDayEvents = (date) => {
-      const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay();
-      return timetable.value.filter(item => item.dayOfWeek === dayOfWeek);
-    };
+  const currentWeek = getCurrentWeek(date);
+  if (currentWeek === -1) return []; // 非教学周不显示课程
 
-    const hasClass = (date, period) => {
-      const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay();
-      return timetable.value.some(item => 
-        item.dayOfWeek === dayOfWeek && 
-        item.periodInfo.split(',').includes(String(period))
-      );
-    };
+  const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay(); // 周日=7
+  return timetable.value.filter(item => (
+    item.dayOfWeek === dayOfWeek &&
+    currentWeek >= item.beginWeek && 
+    currentWeek <= item.endWeek
+  ));
+};
 
-    const getCourseInfo = (date, period) => {
-      const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay();
-      const course = timetable.value.find(item => 
-        item.dayOfWeek === dayOfWeek && 
-        item.periodInfo.split(',').includes(String(period)));
-      return course || {};
-    };
+const hasClass = (date, period) => {
+  const currentWeek = getCurrentWeek(date);
+  if (currentWeek === -1) return false; // 非教学周无课程
 
+  const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay();
+  return timetable.value.some(item => {
+    const periods = item.periodInfo.split(',').map(Number);
+    return (
+      item.dayOfWeek === dayOfWeek &&
+      periods.includes(period) &&
+      currentWeek >= item.beginWeek && 
+      currentWeek <= item.endWeek
+    );
+  });
+};
+const getCourseInfo = (date, period) => {
+  const currentWeek = getCurrentWeek(date);
+  const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay();
+  
+  return timetable.value.find(item => {
+    const periods = item.periodInfo.split(',').map(Number);
+    return (
+      item.dayOfWeek === dayOfWeek &&
+      periods.includes(period) &&
+      currentWeek >= item.beginWeek && 
+      currentWeek <= item.endWeek
+    );
+  }) || { courseName: '', classroomId: '' }; // 默认值
+};
+const getCurrentWeek = (date) => {
+  // 1. 获取当前年份的2月1日（假设每学年从2月开始）
+  const febFirst = new Date(date.getFullYear(), 1, 1); // 月份是0-based，1=2月
+  
+  // 2. 找到2月的第一个周一（教学第1周的开始）
+  const firstMonday = new Date(febFirst);
+  firstMonday.setDate(febFirst.getDate() + ((1 - febFirst.getDay() + 7) % 7));
+  
+  // 3. 计算当前日期与第一个周一的差值（周数）
+  const diffInMs = date - firstMonday;
+  const diffInWeeks = Math.floor(diffInMs / (1000 * 60 * 60 * 24 * 7)) + 1;
+  
+  // 4. 限制周数在1-18之间（其他时间返回-1，表示非教学周）
+  return (diffInWeeks >= 1 && diffInWeeks <= 18) ? diffInWeeks : -1;
+};
     const getEventColor = (event) => {
-      const index = (event.courseName?.charCodeAt(0) || 0) % colorPalette.length;
+      const index = (event.courseId?.charCodeAt(0) || 0) % colorPalette.length;
       return colorPalette[index];
     };
 
     const formatDate = (date) => {
-      return `${date.getMonth() + 1}/${date.getDate()}`;
+      return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
     };
 
     const selectDay = (date) => {
       selectedDate.value = date;
-    };
-
-    const showDetails = (dayOfWeek) => {
-      selectedDate.value = dayOfWeek;
       dialogVisible.value = true;
     };
 
     const filteredTimetable = computed(() => {
       if (!selectedDate.value) return [];
       const dayOfWeek = selectedDate.value.getDay() === 0 ? 7 : selectedDate.value.getDay();
-      return timetable.value.filter((entry) => entry.dayOfWeek === dayOfWeek);
+      return timetable.value.filter((entry) => {
+        const courseDate = new Date(entry.scheduleTime);
+        return (
+          entry.dayOfWeek === dayOfWeek &&
+          courseDate.getFullYear() === selectedDate.value.getFullYear() &&
+          courseDate.getMonth() === selectedDate.value.getMonth() &&
+          courseDate.getDate() === selectedDate.value.getDate()
+        );
+      });
     });
 
     onMounted(() => {
@@ -377,7 +416,6 @@ export default {
       getEventColor,
       formatDate,
       selectDay,
-      showDetails,
       filteredTimetable,
     };
   },
@@ -575,15 +613,15 @@ export default {
 }
 
 .course-name {
+  font-size: 14px;
   font-weight: bold;
-  color: #67C23A;
+  color: #333;
   margin-bottom: 4px;
-  font-size: 12px; /* 缩小字体 */
 }
 
 .classroom {
-  font-size: 10px; /* 缩小字体 */
-  color: #909399;
+  font-size: 12px;
+  color: #666;
 }
 @media (max-width: 768px) {
   .schedule-container {

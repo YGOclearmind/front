@@ -238,7 +238,7 @@ const handleSearch = async () => {
   } else {
     // 有输入时，搜索特定课程
     try {
-      const response = await axios.get('http://localhost:8080/api/courses/getCourse', { params })
+      const response = await axios.get('http://localhost:8080/api/courses/getCourses', { params })
       courses.value = response.data
     } catch (error) {
       console.error('Failed to search course:', error)
