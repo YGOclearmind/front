@@ -13,45 +13,50 @@
             <el-button type="success" @click="manualScheduleShow = true">手动排课</el-button>
             <el-button type="info" @click="fetchTimetables">刷新课表</el-button>
             <el-button type="warning" @click="exportTimetable">保存课表</el-button>
-            <el-table
-                :data="paginatedClasses"
-                style="width: 100%"
-                class="custom-table"
-                :row-style="setRowStyle"
-            >
-                <el-table-column prop="courseId" label="课程编号" width="180"></el-table-column>
-                <el-table-column prop="teacherId" label="教师编号" width="180"></el-table-column>
-                <el-table-column prop="classroomId" label="教室编号" width="180"></el-table-column>
-                <el-table-column label="时间段" width="180">
-                    <template #default="scope">
-                        {{ formatTimeSlot(scope.row) }}
-                    </template>
-                </el-table-column>
-                <el-table-column label="星期几" width="180">
-                    <template #default="scope">
-                        {{ formatDayOfWeek(scope.row.dayOfWeek) }}
-                    </template>
-                </el-table-column>
-            </el-table>
-            <!-- 分页组件 -->
-            <el-pagination
-                v-model:current-page="currentPage"
-                :page-size="pageSize"
-                :total="arrangedClasses.length"
-                layout="prev, pager, next"
-                @current-change="handlePageChange"
-            />
-        </div>
-        <!-- 排课失败原因显示区域 -->
-        <div v-if="scheduleError" class="error-container">
-            <el-alert
-                title="排课失败"
-                type="error"
-                description="失败原因：{{ scheduleError }}"
-                show-icon
-                closable
-                @close="scheduleError = ''"
-            />
+            <div class="table-and-error">
+                <!-- 课表 -->
+                <div class="table-container">
+                    <el-table
+                        :data="paginatedClasses"
+                        style="width: 100%"
+                        class="custom-table"
+                        :row-style="setRowStyle"
+                    >
+                        <el-table-column prop="courseId" label="课程编号" width="180"></el-table-column>
+                        <el-table-column prop="teacherId" label="教师编号" width="180"></el-table-column>
+                        <el-table-column prop="classroomId" label="教室编号" width="180"></el-table-column>
+                        <el-table-column label="时间段" width="180">
+                            <template #default="scope">
+                                {{ formatTimeSlot(scope.row) }}
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="星期几" width="180">
+                            <template #default="scope">
+                                {{ formatDayOfWeek(scope.row.dayOfWeek) }}
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                    <!-- 分页组件 -->
+                    <el-pagination
+                        v-model:current-page="currentPage"
+                        :page-size="pageSize"
+                        :total="arrangedClasses.length"
+                        layout="prev, pager, next"
+                        @current-change="handlePageChange"
+                    />
+                </div>
+                <!-- 排课失败原因显示区域 -->
+                <div v-if="scheduleError" class="error-container">
+                    <el-alert
+                        title="排课失败"
+                        type="error"
+                        :description="'失败原因：'+ scheduleError "
+                        show-icon
+                        closable
+                        @close="scheduleError = ''"
+                    />
+                </div>
+            </div>
         </div>
         <!-- 手动排课对话框 -->
         <el-dialog title="手动排课" v-model="manualScheduleShow" width="50%">
@@ -130,12 +135,16 @@ const fetchTimetables = async () => {
 // 开始排课
 const arrangeClasses = async () => {
     try {
-        const classId = prompt('请输入班级ID', '1'); // 弹窗让用户输入班级ID
+        const classId = prompt('请输入班级数量', '1'); // 弹窗让用户输入班级ID
         if (!classId) {
-            ElMessage.warning('班级ID不能为空');
+            ElMessage.warning('班级数量不能为空');
             return;
         }
-        const response = await axios.post(`http://localhost:8080/api/schedule/autoSchedule/${classId}`);
+        else if(classId<=0){
+            elMessage.warning('班级数量必须大于0');
+            return;
+        }
+        const response = await axios.post(`http://localhost:8080/api/schedule/autoScheduleMultiClass/${classId}`);
         if (response.data.includes('失败')) {
             scheduleError.value = response.data; // 如果失败，显示失败原因
         } else {
@@ -256,5 +265,23 @@ onMounted(async () => {
 /*错误提示样式*/
 .error-container {
     margin-top: 20px;
+}
+
+.arrange-container {
+    margin-top: 20px;
+}
+
+.table-and-error {
+    display: flex; /* 使用 flex 布局 */
+    gap: 20px; /* 设置表格和错误信息之间的间距 */
+}
+
+.table-container {
+    flex: 3; /* 表格占据更多空间 */
+}
+
+.error-container {
+    flex: 1; /* 错误信息占据较少空间 */
+    max-width: 300px; /* 限制错误信息的最大宽度 */
 }
 </style>
